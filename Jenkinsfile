@@ -53,6 +53,7 @@ pipeline {
                         }
                     }
                 }
+                /* This Stage requires Jenkins Plugin = HTML Publisher */
                 stage('e2e-test') {
                     agent {
                         docker {
@@ -64,8 +65,22 @@ pipeline {
                         sh '''
                             npm install serve
                             node_modules/.bin/serve -s build &
-                            npx playwright test
+                            npx playwright test --reporter=html
                         '''
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: false,
+                                icon: '', keepAll: false,
+                                reportDir: 'playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Playwright HTML Report',
+                                reportTitles: '',
+                                useWrapperFileDirectly: true
+                            ])
+                        }
                     }
                 }
             }
