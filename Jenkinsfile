@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         NETLIFY_SITE_ID = '55e1b1b0-b51a-4039-a7ff-80f42e13e78d'
+        NETLIFY_AUTH_TOKEN = credentials('NETLIFY_AUTH_TOKEN')
     }
 
     stages {
@@ -69,6 +70,7 @@ pipeline {
                         sh '''
                             npm install serve
                             node_modules/.bin/serve -s build &
+                            sleep 10
                             npx playwright test --reporter=html
                         '''
                     }
