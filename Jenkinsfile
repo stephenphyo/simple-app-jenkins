@@ -103,7 +103,7 @@ pipeline {
             steps {
                 sh '''
                     netlify status
-                    netlify deploy --dir=build/ --prod
+                    netlify deploy --dir=build --prod --no-build
                 '''
             }
         }
