@@ -96,6 +96,7 @@ pipeline {
             agent {
                 docker {
                     image 'netlify-cli'
+                    reuseNode true
                 }
             }
 
