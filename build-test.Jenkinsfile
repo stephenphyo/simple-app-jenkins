@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        NETLIFY_SITE_ID = '55e1b1b0-b51a-4039-a7ff-80f42e13e78d'
-    }
-
     stages {
         stage('build') {
             agent {
@@ -87,21 +83,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-
-        stage('deploy') {
-            agent {
-                docker {
-                    image 'netlify-cli'
-                }
-            }
-
-            steps {
-                sh '''
-                    netlify status
-                    netlify deploy --dir=build/ --prod
-                '''
             }
         }
     }
