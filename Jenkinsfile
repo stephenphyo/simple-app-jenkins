@@ -7,6 +7,15 @@ pipeline {
     }
 
     stages {
+
+        stage('pre') {
+            steps {
+                sh '''
+                    docker build -t netlify-cli -f Dockerfiles/netlfiy-cli.Dockerfile .
+                '''
+            }
+        }
+
         stage('build') {
             agent {
                 docker {
