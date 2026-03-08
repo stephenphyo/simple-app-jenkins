@@ -8,15 +8,7 @@ pipeline {
 
     stages {
 
-        stage('pre') {
-            steps {
-                sh '''
-                    docker build -t netlify-cli -f Dockerfiles/netlfiy-cli.Dockerfile .
-                '''
-            }
-        }
-
-        stage('build') {
+        stage('build-app') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -34,86 +26,34 @@ pipeline {
             }
         }
 
-        stage('test') {
-            parallel {
-                stage('artifact-test') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                            test -f build/index.html
-                        '''
-                    }
-                }
-                stage('unit-test') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                            npm test
-                        '''
-                    }
-                    post {
-                        always {
-                            junit 'test-results/junit.xml'
-                        }
-                    }
-                }
-                /* This Stage requires Jenkins Plugin = HTML Publisher */
-                stage('e2e-test') {
-                    agent {
-                        docker {
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                            npm install serve
-                            node_modules/.bin/serve -s build &
-                            sleep 6
-                            npx playwright test --reporter=html
-                        '''
-                    }
-                    post {
-                        always {
-                            publishHTML([
-                                allowMissing: false,
-                                alwaysLinkToLastBuild: false,
-                                icon: '', keepAll: false,
-                                reportDir: 'playwright-report',
-                                reportFiles: 'index.html',
-                                reportName: 'Playwright HTML Report',
-                                reportTitles: '',
-                                useWrapperFileDirectly: true
-                            ])
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('deploy') {
+        stage('build-docker-image-push-aws-ecr') {
             agent {
                 docker {
-                    image 'netlify-cli'
+                    image 'awscli-docker'
                     reuseNode true
                 }
             }
-
+            environment {
+                AWS_ECR_REGISTRY = '356855127394.dkr.ecr.ap-southeast-1.amazonaws.com'
+            }
             steps {
-                sh '''
-                    netlify status
-                    netlify deploy --dir=build --prod --no-build
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: env.CREDENTIAL_ID,
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        export DOCKER_HOST=tcp://172.17.0.1:2375
+                        aws --version
+                        docker version
+                        
+                        docker build -t $AWS_ECR_REGISTRY/$APP_NAME:latest .
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
+                        docker push $AWS_ECR_REGISTRY/$APP_NAME:latest $AWS_ECR_REGISTRY/$APP_NAME:10
+                    '''
+                }
             }
         }
     }
