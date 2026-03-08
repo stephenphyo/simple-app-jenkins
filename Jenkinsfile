@@ -85,6 +85,7 @@ pipeline {
                 ]) {
                     sh '''
                         aws --version
+                        sed -i "s/{VERSION}/$APP_VERSION/g" aws/aws-ecs-001-td-simple-app.json
                         TASK_DEFINITION_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/aws-ecs-001-td-simple-app.json --query 'taskDefinition.revision' --output text)
                         aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK_DEFINITION:$TASK_DEFINITION_REVISION
                         aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE
