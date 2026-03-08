@@ -50,9 +50,10 @@ pipeline {
                         aws --version
                         docker version
                         
-                        docker build -t $AWS_ECR_REGISTRY/$APP_NAME:latest .
+                        docker build -t $AWS_ECR_REGISTRY/$APP_NAME:2 .
+                        docker tag $AWS_ECR_REGISTRY/$APP_NAME:2 $AWS_ECR_REGISTRY/$APP_NAME:latest
                         aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
-                        docker push $AWS_ECR_REGISTRY/$APP_NAME:latest $AWS_ECR_REGISTRY/$APP_NAME:10
+                        docker push $AWS_ECR_REGISTRY/$APP_NAME --all-tags
                     '''
                 }
             }
