@@ -34,6 +34,7 @@ pipeline {
             }
             environment {
                 AWS_ECR_REGISTRY = '356855127394.dkr.ecr.ap-southeast-1.amazonaws.com'
+                CREDENTIAL_ID = 'aws-alpha-23-jenkins-01'
             }
             steps {
                 withCredentials([
