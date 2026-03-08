@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         APP_NAME = 'simple-app'
+        AWS_DEFAULT_REGION = 'ap-southeast-1'
     }
 
     stages {
